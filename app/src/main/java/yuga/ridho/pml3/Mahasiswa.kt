@@ -1,10 +1,12 @@
 package yuga.ridho.pml3
 
-import androidx.compose.runtime.Immutable
+import com.google.firebase.database.IgnoreExtraProperties
 
-@Immutable
+// Anotasi ini penting untuk keamanan dan fleksibilitas
+@IgnoreExtraProperties
 data class Mahasiswa(
-    val nim: String = "",
-    val namaMhs: String = "",
-    val alamatMhs: String = ""
+    // Memberikan nilai default akan secara otomatis membuat constructor kosong
+    val nim: String? = null,
+    val namaMhs: String? = null,
+    val alamatMhs: String? = null
 )

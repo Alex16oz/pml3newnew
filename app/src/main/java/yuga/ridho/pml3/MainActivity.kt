@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    // Memanggil Composable utama aplikasi
                     MahasiswaScreen()
                 }
             }
@@ -34,14 +35,20 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MahasiswaScreen() {
+    // Konteks aplikasi untuk menampilkan Toast
     val context = LocalContext.current
+    // Referensi ke tabel "TabelMahasiswa" di Firebase Database
     val database = FirebaseDatabase.getInstance().getReference("TabelMahasiswa")
 
+    // State untuk menampung input dari pengguna
     var nim by remember { mutableStateOf("") }
     var nama by remember { mutableStateOf("") }
     var alamat by remember { mutableStateOf("") }
+
+    // State untuk menampung daftar mahasiswa dari Firebase
     var mahasiswaList by remember { mutableStateOf<List<Mahasiswa>>(emptyList()) }
 
+    // LaunchedEffect digunakan untuk mengambil data dari Firebase sekali saat Composable pertama kali dibuat
     LaunchedEffect(Unit) {
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -57,10 +64,13 @@ fun MahasiswaScreen() {
                 Toast.makeText(context, "Gagal memuat data: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         }
+        // Menambahkan listener ke referensi database
         database.addValueEventListener(valueEventListener)
     }
 
+    // Tampilan utama menggunakan Column
     Column(modifier = Modifier.padding(16.dp)) {
+        // Input field untuk NIM
         OutlinedTextField(
             value = nim,
             onValueChange = { nim = it },
@@ -68,6 +78,7 @@ fun MahasiswaScreen() {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        // Input field untuk Nama Mahasiswa
         OutlinedTextField(
             value = nama,
             onValueChange = { nama = it },
@@ -75,6 +86,7 @@ fun MahasiswaScreen() {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
+        // Input field untuk Alamat
         OutlinedTextField(
             value = alamat,
             onValueChange = { alamat = it },
@@ -82,16 +94,19 @@ fun MahasiswaScreen() {
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
+        // Baris untuk tombol-tombol aksi
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            // Tombol Insert
             Button(onClick = {
                 if (nim.isNotBlank() && nama.isNotBlank()) {
                     val mahasiswa = Mahasiswa(nim, nama, alamat)
                     database.child(nim).setValue(mahasiswa)
                         .addOnSuccessListener {
                             Toast.makeText(context, "Data berhasil ditambahkan", Toast.LENGTH_SHORT).show()
+                            // Mengosongkan input field setelah berhasil
                             nim = ""
                             nama = ""
                             alamat = ""
@@ -105,11 +120,13 @@ fun MahasiswaScreen() {
             }) {
                 Text("Insert")
             }
+            // Tombol Delete
             Button(onClick = {
                 if (nim.isNotBlank()) {
                     database.child(nim).removeValue()
                         .addOnSuccessListener {
                             Toast.makeText(context, "Data berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            // Mengosongkan input field setelah berhasil
                             nim = ""
                             nama = ""
                             alamat = ""
@@ -118,6 +135,7 @@ fun MahasiswaScreen() {
             }) {
                 Text("Delete")
             }
+            // Tombol Update
             Button(onClick = {
                 if (nim.isNotBlank()) {
                     val mahasiswaData = mapOf(
@@ -134,6 +152,7 @@ fun MahasiswaScreen() {
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+        // Daftar mahasiswa yang dapat di-scroll
         LazyColumn {
             items(mahasiswaList) { mahasiswa ->
                 Card(
@@ -141,6 +160,7 @@ fun MahasiswaScreen() {
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clickable {
+                            // Saat item di-klik, isi input field dengan data mahasiswa tersebut
                             nim = mahasiswa.nim
                             nama = mahasiswa.namaMhs
                             alamat = mahasiswa.alamatMhs
